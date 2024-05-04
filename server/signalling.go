@@ -11,23 +11,23 @@ import (
 // AllRooms is the global hashmap for the server
 var AllRooms RoomMap
 
-// CreateRoomRequest Create a Room and returns roomID
-func CreateRoomRequest(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	roomID := AllRooms.CreateRoom()
-
-	type resp struct {
-		RoomID string `json:"room_id"`
-	}
-
-	log.Println(AllRooms.Map)
-	json.NewEncoder(w).Encode(resp{RoomID: roomID})
+type resp struct {
+	RoomID string `json:"room_id"`
 }
 
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
 		return true
 	},
+}
+
+// CreateRoomRequest Create a Room and returns roomID
+func CreateRoomRequest(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	roomID := AllRooms.CreateRoom()
+
+	log.Println(AllRooms.Map)
+	json.NewEncoder(w).Encode(resp{RoomID: roomID})
 }
 
 type broadcastMsg struct {
@@ -56,12 +56,14 @@ func broadcaster() {
 
 // JoinRoomRequest will join client in a particular room
 func JoinRoomRequest(w http.ResponseWriter, r *http.Request) {
-	roomID, ok := r.URL.Query()["roomID"]
+	query_roomID, ok := r.URL.Query()["roomID"]
 
 	if !ok {
-		log.Println("roomID missing in URL Parameters")
+		log.Println("roomID missing in unable to join the call")
 		return
 	}
+
+	roomID := query_roomID[0]
 
 	ws, err := upgrader.Upgrade(w, r, nil)
 
@@ -69,7 +71,7 @@ func JoinRoomRequest(w http.ResponseWriter, r *http.Request) {
 		log.Fatal("Web socket upgrade Error", err)
 	}
 
-	AllRooms.InsertIntoRoom(roomID[0], false, ws)
+	AllRooms.InsertIntoRoom(roomID, false, ws)
 
 	go broadcaster()
 
@@ -80,7 +82,7 @@ func JoinRoomRequest(w http.ResponseWriter, r *http.Request) {
 			log.Fatal("Read Error", err)
 		}
 		msg.Client = ws
-		msg.RoomID = roomID[0]
+		msg.RoomID = roomID
 
 		broadcast <- msg
 	}

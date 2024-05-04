@@ -6,12 +6,14 @@ import (
 	"sync"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 )
 
 // Participant describes a single entity in the hashmap
 type Participants struct {
 	Host bool
+	ID   string
 	Conn *websocket.Conn
 }
 
@@ -39,7 +41,7 @@ func (r *RoomMap) CreateRoom() string {
 	r.Mutex.Lock()
 	defer r.Mutex.Unlock()
 
-	rand.NewSource(time.Now().UnixNano())
+	rand.New(rand.NewSource(time.Now().UnixNano()))
 	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890")
 	b := make([]rune, 8)
 
@@ -58,10 +60,11 @@ func (r *RoomMap) InsertIntoRoom(roomID string, host bool, conn *websocket.Conn)
 	r.Mutex.Lock()
 	defer r.Mutex.Unlock()
 
-	p := Participants{host, conn}
+	ClientID := uuid.New().String()
+	incomingParticipant := Participants{host,ClientID,conn}
 
 	log.Println("Inserting into Room with RoomID: ", roomID)
-	r.Map[roomID] = append(r.Map[roomID], p)
+	r.Map[roomID] = append(r.Map[roomID], incomingParticipant)
 }
 
 // DeleteRoom deletes the room with the roomID
