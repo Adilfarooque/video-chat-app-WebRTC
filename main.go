@@ -5,14 +5,12 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/Adilfarooque/video-chat-app/server"
+	"github.com/Adilfarooque/video-chat-app/internals/server"
 )
 
 const (
-	port = ":8080"
+	port = ":8000"
 )
-
-
 
 func main() {
 	server.AllRooms.Init()

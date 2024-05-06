@@ -61,7 +61,7 @@ func (r *RoomMap) InsertIntoRoom(roomID string, host bool, conn *websocket.Conn)
 	defer r.Mutex.Unlock()
 
 	ClientID := uuid.New().String()
-	incomingParticipant := Participants{host,ClientID,conn}
+	incomingParticipant := Participants{host, ClientID, conn}
 
 	log.Println("Inserting into Room with RoomID: ", roomID)
 	r.Map[roomID] = append(r.Map[roomID], incomingParticipant)
